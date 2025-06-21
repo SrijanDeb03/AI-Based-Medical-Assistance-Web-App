@@ -95,7 +95,7 @@ def predict_xray(image_path, model, class_labels):
         top_3_indices = np.argsort(predictions[0])[-3:][::-1]
         top_3_confidences = predictions[0][top_3_indices] * 100
         top_3_classes = [class_labels[i] for i in top_3_indices]
-        return [{"disease": cls, "confidence": float(round(conf, 1))} for cls, conf in zip(top_3_classes, top_3_confidences)]
+        return [{"disease": cls, "confidence": round(conf, 2)} for cls, conf in zip(top_3_classes, top_3_confidences)]
     except Exception as e:
         raise Exception(f"Prediction failed: {str(e)}")
 
@@ -107,7 +107,7 @@ def predict_covid_xray(image_path, model, class_labels, top_k=3):
     top_indices = np.argsort(scaled_preds)[-top_k:][::-1]
     top_labels = [class_labels[i] for i in top_indices]
     top_probs = [float(round(scaled_preds[i] * 100, 2)) for i in top_indices]
-    return [{"disease": label, "confidence": prob} for label, prob in zip(top_labels, top_probs)]
+    return [{"disease": label, "confidence": round(prob, 2)} for label, prob in zip(top_labels, top_probs)]
 
 def predict_skin(image_path, model, class_labels):
     try:
@@ -116,7 +116,7 @@ def predict_skin(image_path, model, class_labels):
         top_3_indices = np.argsort(predictions[0])[-3:][::-1]
         top_3_confidences = predictions[0][top_3_indices] * 100
         top_3_classes = [class_labels[i] for i in top_3_indices]
-        return [{"disease": skin_classes[cls], "confidence": float(round(conf, 1))} for cls, conf in zip(top_3_classes, top_3_confidences)]
+        return [{"disease": skin_classes[cls], "confidence": round(conf, 2)} for cls, conf in zip(top_3_classes, top_3_confidences)]
     except Exception as e:
         raise Exception(f"Skin prediction failed: {str(e)}")
 
