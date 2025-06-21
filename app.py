@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, send_from_directory
+from flask import Flask, request, jsonify, render_template, send_from_directory, session
 import requests
 import pickle
 import pandas as pd
@@ -12,11 +12,13 @@ import sys
 from dotenv import load_dotenv
 from tensorflow.keras.models import load_model
 import tensorflow as tf
+import uuid
 
 # NEW: Import the Gemini SDK
 import google.generativeai as genai
 
 app = Flask(__name__)
+app.secret_key = os.urandom(24)  # Required for session management
 
 # Load environment variables
 load_dotenv()
@@ -120,6 +122,39 @@ def predict_skin(image_path, model, class_labels):
     except Exception as e:
         raise Exception(f"Skin prediction failed: {str(e)}")
 
+# --- Gemini Caching and Session Management ---
+GEMINI_CACHE = None
+CHAT_SESSIONS = {}  # In-memory chat history keyed by session ID
+
+SYSTEM_PROMPT = (
+    "You are a helpful medical assistant. "
+    "Answer briefly and clearly. "
+    "Format your response in Markdown. "
+    "Provide suggestions or steps, use bold headings, bullet points, and warnings where appropriate. "
+    "Answer prompts regarding only medical conditions and basic greetings, for others reply that you are a medical chat bot"
+    "Always end with a medical disclaimer."
+)
+
+def create_gemini_cache():
+    """Creates and caches the system prompt for the Gemini model."""
+    global GEMINI_CACHE
+    print("Attempting to create or retrieve Gemini cache for system prompt...")
+    try:
+        # This creates a cache with a 60-minute time-to-live.
+        # If a compatible cache from a previous run exists, it may be reused.
+        GEMINI_CACHE = genai.caching.create_cached_content(
+            model=GEMINI_MODEL,
+            system_instruction=SYSTEM_PROMPT,
+            ttl="60m"
+        )
+        print(f"Gemini cache created successfully. Name: {GEMINI_CACHE.name}")
+    except Exception as e:
+        print(f"Could not create Gemini cache. Chat will proceed without it. Error: {e}")
+
+# Create the cache on application startup
+create_gemini_cache()
+# --- End of Caching and Session Setup ---
+
 # --- Gemini Medical Chatbot Functions (UPDATED) ---
 
 def format_response_markdown_chatbot(text):
@@ -148,24 +183,6 @@ def format_response_markdown_chatbot(text):
             text += "\n\n---\n"
         text += disclaimer
     return text.strip()
-
-
-def query_gemini_medical(prompt):
-    try:
-        model = genai.GenerativeModel(GEMINI_MODEL)
-        system_prompt = (
-            "You are a helpful medical assistant. "
-            "Answer briefly and clearly. "
-            "Format your response in Markdown. "
-            "Provide suggestions or steps, use bold headings, bullet points, and warnings where appropriate. "
-            "Answer prompts regarding only medical conditions and basic greetings, for others reply that you are a medical chat bot"
-            "Always end with a medical disclaimer."
-        )
-        full_prompt = f"{system_prompt}\n\nUser: {prompt}"
-        response = model.generate_content(full_prompt)
-        return format_response_markdown_chatbot(response.text)
-    except Exception as e:
-        return f"Error: {str(e)}"
 
 @app.route('/')
 def home():
@@ -240,8 +257,33 @@ def predict_skin_route():
 def get_response():
     data = request.get_json()
     user_input = data.get('user_input')
-    response = query_gemini_medical(user_input)
-    return jsonify({'response': response})
+
+    if 'session_id' not in session:
+        session['session_id'] = str(uuid.uuid4())
+    session_id = session['session_id']
+
+    try:
+        # If caching failed at startup, GEMINI_CACHE will be None
+        if GEMINI_CACHE:
+            model = genai.GenerativeModel.from_cached_content(cached_content=GEMINI_CACHE)
+            generation_config = {"cached_content": GEMINI_CACHE.name}
+        else:
+            # Fallback to a non-cached model if cache creation failed
+            model = genai.GenerativeModel(GEMINI_MODEL, system_instruction=SYSTEM_PROMPT)
+            generation_config = {} # No cache to reference
+
+        if session_id not in CHAT_SESSIONS:
+            CHAT_SESSIONS[session_id] = model.start_chat(history=[])
+        
+        chat = CHAT_SESSIONS[session_id]
+        response = chat.send_message(user_input, generation_config=generation_config)
+        
+        formatted_response = format_response_markdown_chatbot(response.text)
+        return jsonify({'response': formatted_response})
+
+    except Exception as e:
+        print(f"Error during Gemini chat: {e}")
+        return jsonify({'response': f"An error occurred while communicating with the AI assistant: {str(e)}"}), 500
 
 # Optional: clean & attach AI disclaimer
 def format_response_markdown(text):
