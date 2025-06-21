@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chest X-ray Results - Artemis</title>
+    <!-- Load Tailwind via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Abel Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Abel&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+         html {
+            font-size: 1.35rem;
+            font-weight: 600;
+        }
+        /* Set default font-family to Abel */
+        body {
+            font-family: 'Abel', sans-serif;
+            color: white;
+        }
+        /* Video background and overlay */
+        #background-video {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            z-index: -2;
+            object-fit: cover;
+        }
+        #video-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: -1;
+        }
+        /* Make sure body and html take full height */
+        html, body {
+            height: 100%;
+        }
+        /* Fade-in animation */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeInUp {
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+        /* Gradient button with hover effect */
+        .gradient-btn {
+            background-image: linear-gradient(to right, #14b8a6, #3b82f6);
+            transition: opacity 0.2s;
+        }
+        .gradient-btn:hover {
+            opacity: 0.9;
+        }
+    </style>
+    <!-- Tailwind config for custom font -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Abel', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+</head>
+<body class="pt-20">
+    <!-- Video background and overlay -->
+    <video id="background-video" autoplay loop muted playsinline>
+        <source src="/static/chest_video.mp4" type="video/mp4">
+        <source src="/static/chest_video.webm" type="video/webm">
+        Your browser does not support the video tag.
+    </video>
+    <div id="video-overlay"></div>
+
+    <!-- Navigation Bar -->
+    <nav class="w-full bg-gray-900/[0.7] fixed top-0 left-0 right-0 flex justify-between items-center px-10 py-4 shadow-md z-10">
+        <div class="text-2xl font-bold flex items-center text-white">
+            <img src="/static/artemis.png" class="w-10 h-10">
+            <span class="ml-2">Artemis</span>
+        </div>
+        <ul class="flex space-x-6 text-white">
+            <li class="hover:text-blue-400 cursor-pointer"><a href="/">Home</a></li>
+            <li class="hover:text-blue-400 cursor-pointer"><a href="/predict">Prediction</a></li>
+            <li class="hover:text-blue-400 cursor-pointer"><a href="/predict_xray">Chest X-Ray</a></li>
+            <li class="hover:text-blue-400 cursor-pointer"><a href="/predict_skin">Skin disease</a></li>
+            <li class="hover:text-blue-400 cursor-pointer"><a href="/covid19">Lung disease</a></li>
+            <li class="hover:text-blue-400 cursor-pointer"><a href="/chat">Chatbot</a></li>
+        </ul>
+    </nav>
+
+    <!-- Chest X-ray Results Container with fade-in animation -->
+    <div class="w-full max-w-3xl bg-black/[0.7] text-white shadow-lg rounded-lg p-6 mx-auto mt-32 z-20 animate-fadeInUp">
+        <div class="text-2xl font-bold mb-4 text-center">Chest X-ray Analysis Results</div>
+        <div class="bg-gray-900/[0.7] text-white p-4 rounded-lg border border-gray-700">
+            {% if error %}
+                <p class="text-red-400">{{ error }}</p>
+            {% else %}
+                <!-- Display the uploaded X-ray image -->
+                <div class="mb-4">
+                    <img src="/static/{{ image_path }}" class="w-full h-auto rounded-lg" alt="Uploaded X-ray">
+                </div>
+                <!-- Display prediction results -->
+                <div>
+                    <p class="font-bold text-lg mb-2">Predicted Conditions:</p>
+                    <ul class="list-disc pl-5 space-y-2">
+                        {% for pred in predictions %}
+                            <li>{{ pred.disease }}: <span class="text-teal-400">{{ pred.confidence }}%</span> confidence</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <!-- Back to Prediction Button -->
+                <div class="mt-6">
+                    <a href="/predict_xray" class="gradient-btn text-white px-6 py-3 rounded-lg w-full text-center inline-block">Analyze Another X-ray</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

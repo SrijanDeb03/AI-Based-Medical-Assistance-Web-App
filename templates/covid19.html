@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lung Disease Analysis - Artemis</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Abel&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                fontFamily: {
+                    sans: ['Abel', 'sans-serif'],
+                },
+                extend: {
+                    animation: {
+                        fadeInUp: 'fadeInUp 0.8s ease-out forwards',
+                        textGradient: 'textGradient 5s ease infinite'
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: 0, transform: 'translateY(20px)' },
+                            '100%': { opacity: 1, transform: 'translateY(0)' },
+                        },
+                        textGradient: {
+                            '0%, 100%': { 'background-size': '200% 200%', 'background-position': 'left center' },
+                            '50%': { 'background-size': '200% 200%', 'background-position': 'right center' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        html {
+            font-size: 1.35rem;
+            font-weight: 600;
+        }
+        /* Set the background image of the body */
+        body {
+            background-image: url('/static/xray.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: white;
+            min-height: 100vh;
+            font-family: 'Abel', sans-serif;
+        }
+
+        /* Navbar and main container improvements */
+        nav {
+            background-color: rgba(17, 24, 39, 0.9);
+        }
+
+        .main-container {
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Gradient button with hover effect */
+        .gradient-btn {
+            background-image: linear-gradient(to right, #14b8a6, #3b82f6);
+            color: white;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            display: inline-block;
+        }
+        .gradient-btn:hover {
+            opacity: 0.9;
+            transform: scale(1.05);
+        }
+
+        /* File input and result animations */
+        #covid-xray-image {
+            opacity: 0;
+            position: absolute;
+            width: 0.1px;
+            height: 0.1px;
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 0.5rem 1rem;
+            background-color: rgba(31, 41, 55, 0.7);
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            width: 100%;
+            text-align: center;
+        }
+
+        .file-input-label:hover {
+            background-color: rgba(55, 65, 81, 0.7);
+        }
+
+        #covid-xray-result {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        /* Modal styles */
+        #xray-modal {
+            background-color: rgba(17, 24, 39, 0.75);
+        }
+
+        #xray-modal>div {
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+        }
+
+        #background-video {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            z-index: -2;
+            object-fit: cover;
+        }
+        #video-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: -1;
+        }
+
+        /* Fade-in-up animation class */
+        .animate-fadeInUp {
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+    </style>
+</head>
+
+<body class="pt-20">
+    <!-- Video Background -->
+    <video id="background-video" autoplay loop muted playsinline>
+        <source src="/static/lung_video.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+    <div id="video-overlay"></div>
+
+    <!-- Navigation Bar -->
+    <nav class="w-full fixed top-0 left-0 right-0 flex justify-between items-center px-10 py-4 shadow-md z-50">
+        <div class="text-2xl font-bold flex items-center text-white">
+            <img src="/static/artemis.png" class="w-10 h-10">
+            <span class="ml-2">Artemis</span>
+        </div>
+        <ul class="flex space-x-6 text-white">
+            <li class="hover:text-blue-400 cursor-pointer transition-all duration-200"><a href="/">Home</a></li>
+            <li class="hover:text-blue-400 cursor-pointer transition-all duration-200"><a href="/predict">Prediction</a></li>
+            <li class="hover:text-blue-400 cursor-pointer transition-all duration-200"><a href="/predict_xray">Chest X-Ray</a></li>
+            <li class="hover:text-blue-400 cursor-pointer transition-all duration-200"><a href="/predict_skin">Skin disease</a></li>
+            <li class="hover:text-blue-400 cursor-pointer transition-all duration-200"><a href="/covid19">Lung disease</a></li>
+            <li class="hover:text-blue-400 cursor-pointer transition-all duration-200"><a href="/chat">Chatbot</a></li>
+        </ul>
+    </nav>
+
+    <!-- COVID-19 X-ray Container -->
+    <div class="w-full max-w-3xl main-container text-white shadow-lg rounded-lg p-6 mx-auto mt-36 animate-fadeInUp">
+        <div class="text-2xl font-bold mb-4 text-center animate-fadeInUp" style="animation-delay: 0.1s">COVID-19/X-ray Analysis</div>
+        <div class="bg-gray-900 text-white p-4 rounded-lg border border-gray-700 " style="animation-delay: 0.2s">
+            <form id="covid-xray-form" enctype="multipart/form-data">
+                <label for="covid-xray-image" class="file-input-label mb-4 " style="animation-delay: 0.3s">
+                    <span>Don't hold your breath -- results are just a click away!👇</span>
+                </label>
+                <input type="file" id="covid-xray-image" name="xray_image" accept="image/*">
+                <button type="submit" class="gradient-btn text-white px-6 py-3 rounded-lg w-full " style="animation-delay: 0.4s">Analyze</button>
+            </form>
+            <div id="covid-xray-result" class="mt-4 animate-fadeInUp" style="animation-delay: 0.5s"></div>
+        </div>
+    </div>
+
+    <!-- X-ray Upload Modal (for Remedies) -->
+    <div id="xray-modal" class="fixed inset-0 hidden flex items-center justify-center z-50">
+        <div class="rounded-lg p-6 w-full max-w-md animate-fadeInUp">
+            <h2 class="text-xl font-bold mb-4">Upload Chest X-ray</h2>
+            <form id="xray-form" enctype="multipart/form-data">
+                <label for="xray-image" class="file-input-label mb-4">
+                    <span>Select X-ray Image</span>
+                </label>
+                <input type="file" id="xray-image" name="xray_image" accept="image/*">
+                <div class="flex justify-end">
+                    <button type="button" onclick="closeXrayModal()"
+                        class="bg-gray-600 text-white px-4 py-2 rounded mr-2">Cancel</button>
+                    <button type="submit" class="gradient-btn text-white px-4 py-2 rounded">Analyze</button>
+                </div>
+            </form>
+            <div id="xray-result" class="mt-4"></div>
+        </div>
+    </div>
+
+    <script>
+        function toggleRemedies() {
+            const dropdown = document.getElementById("remedies-dropdown");
+            dropdown.classList.toggle("hidden");
+        }
+
+        function showXrayUpload() {
+            document.getElementById("xray-modal").classList.remove("hidden");
+            const dropdown = document.getElementById("remedies-dropdown");
+            if (dropdown) dropdown.classList.add("hidden");
+        }
+        function closeXrayModal() {
+            document.getElementById("xray-modal").classList.add("hidden");
+            document.getElementById("xray-result").innerHTML = "";
+            document.getElementById("xray-image").value = "";
+        }
+
+        // Handle the X-ray upload and analysis
+        document.getElementById("covid-xray-form").addEventListener("submit", function (event) {
+            event.preventDefault();
+            const fileInput = document.getElementById("covid-xray-image");
+            if (!fileInput.files.length) {
+                alert("Please select an X-ray image.");
+                return;
+            }
+
+            // Preview the selected image
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const imageUrl = e.target.result;
+                document.getElementById("covid-xray-result").innerHTML = `<img src="${imageUrl}" class="w-full h-auto mt-4 rounded" alt="Uploaded X-ray">`;
+            };
+            reader.readAsDataURL(file);
+
+            // Submit the image for analysis
+            const formData = new FormData();
+            formData.append("xray_image", file);
+
+            const resultDiv = document.getElementById("covid-xray-result");
+            resultDiv.innerHTML = "<p class='text-gray-400'>Analyzing...</p>";
+
+            fetch("/predict_covid_xray", {
+                method: "POST",
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        resultDiv.innerHTML = `<p class='text-red-400'>${data.error}</p>`;
+                    } else {
+                        let resultHTML = "<p class='font-bold'>Top Predictions:</p><ul>";
+                        data.predictions.forEach(pred => {
+                            resultHTML += `<li>${pred.disease}: ${pred.confidence}%</li>`;
+                        });
+                        resultHTML += "</ul>";
+                        resultDiv.innerHTML += resultHTML;
+                    }
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    resultDiv.innerHTML = "<p class='text-red-400'>Error occurred during analysis. Please try again.</p>";
+                });
+        });
+
+        document.getElementById("xray-form").addEventListener("submit", function (event) {
+            event.preventDefault();
+            const fileInput = document.getElementById("xray-image");
+            if (!fileInput.files.length) {
+                alert("Please select an X-ray image.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("xray_image", fileInput.files[0]);
+
+            const resultDiv = document.getElementById("xray-result");
+            resultDiv.innerHTML = "<p class='text-gray-400'>Analyzing...</p>";
+
+            fetch("/predict_xray", {
+                method: "POST",
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        resultDiv.innerHTML = `<p class='text-red-400'>${data.error}</p>`;
+                    } else {
+                        let resultHTML = "<p class='font-bold'>Analysis Results:</p><ul>";
+                        data.predictions.forEach(pred => {
+                            resultHTML += `<li>${pred.disease}: ${pred.confidence}% confidence</li>`;
+                        });
+                        resultHTML += "</ul>";
+                        resultDiv.innerHTML = resultHTML;
+                    }
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    resultDiv.innerHTML = "<p class='text-red-400'>Error occurred during analysis. Please try again.</p>";
+                });
+        });
+
+        // Update file input label text on selection
+        document.getElementById('covid-xray-image').addEventListener('change', function (e) {
+            const fileName = this.files[0]?.name || 'Select X-ray Image';
+            document.querySelector('#covid-xray-form .file-input-label span').textContent = fileName;
+        });
+        document.getElementById('xray-image').addEventListener('change', function (e) {
+            const fileName = this.files[0]?.name || 'Select X-ray Image';
+            document.querySelector('#xray-form .file-input-label span').textContent = fileName;
+        });
+    </script>
+</body>
+
+</html>

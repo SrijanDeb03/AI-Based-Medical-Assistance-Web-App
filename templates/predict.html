@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Disease Predictor (Gemini AI)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Custom Font and Animation Setup -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Abel&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                fontFamily: {
+                    sans: ['Abel', 'sans-serif'],
+                },
+                extend: {
+                    animation: {
+                        fadeInUp: 'fadeInUp 0.8s ease-out forwards',
+                        textGradient: 'textGradient 5s ease infinite',
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: 0, transform: 'translateY(20px)' },
+                            '100%': { opacity: 1, transform: 'translateY(0)' },
+                        },
+                        textGradient: {
+                            '0%, 100%': { 'background-size': '200% 200%', 'background-position': 'left center' },
+                            '50%': { 'background-size': '200% 200%', 'background-position': 'right center' },
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        html {
+            font-size: 1.35rem;
+            font-weight: 600;
+        }
+
+        #background-video {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            z-index: -2;
+            object-fit: cover;
+        }
+
+        #video-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: -1;
+        }
+
+        body {
+            color: white;
+            font-family: 'Abel', sans-serif;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 40px auto;
+            background: rgba(35, 35, 42, 0.8);
+            border-radius: 12px;
+            padding: 2em;
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        input {
+            font-size: 1em;
+            margin: 0.5em 0;
+            background: #2d3748;
+            border: 1px solid #4a5568;
+            color: white;
+            border-radius: 5px;
+            padding: 0.5em;
+        }
+
+        .symptom-list,
+        .suggest-list,
+        .disease-table {
+            margin: 1em 0;
+        }
+
+        .disease-result {
+            background: #1f1f24;
+            padding: 1em;
+            border-radius: 8px;
+        }
+
+        .info-modal {
+            background: #18181b;
+            color: #fff;
+            border: 2px solid #2dd4bf;
+            border-radius: 8px;
+            padding: 1em;
+            position: fixed;
+            top: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            max-width: 90vw;
+            z-index: 1000;
+        }
+
+        .close-btn {
+            float: right;
+            background: #f87171;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 0.2em 0.6em;
+            cursor: pointer;
+        }
+
+        pre,
+        table {
+            background: #27272a;
+            padding: 1em;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th,
+        td {
+            padding: 0.6em 1em;
+            text-align: left;
+            border-bottom: 1px solid #3f3f46;
+        }
+
+        th {
+            background: #2dd4bf;
+            color: #18181b;
+        }
+
+        .gradient-btn {
+            background-image: linear-gradient(to right, #14b8a6, #3b82f6);
+            transition: opacity 0.2s;
+            color: white;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            display: inline-block;
+        }
+        .gradient-btn:hover {
+            transform: scale(1.05);
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="flex justify-between items-center px-10 py-4 bg-gray-900/[0.7] text-white  ">
+        <div class="text-2xl font-bold flex items-center">
+            <span><img src="/static/artemis.png" class="w-10 h-10 mx-auto"></span>
+            <span class="ml-2">Artemis</span>
+        </div>
+        <ul class="flex space-x-6 text-white">
+            <li class="hover:text-blue-400 cursor-pointer transition-colors duration-150"><a href="/">Home</a></li>
+            <li class="hover:text-blue-400 cursor-pointer transition-colors duration-150"><a
+                    href="/predict">Prediction</a></li>
+            <li class="hover:text-blue-400 cursor-pointer transition-colors duration-150"><a href="/predict_xray">Chest
+                    X-Ray</a></li>
+            <li class="hover:text-blue-400 cursor-pointer transition-colors duration-150"><a href="/predict_skin">Skin
+                    disease</a></li>
+            <li class="hover:text-blue-400 cursor-pointer transition-colors duration-150"><a href="/covid19">Lung
+                    disease</a></li>
+            <li class="hover:text-blue-400 cursor-pointer transition-colors duration-150"><a href="/chat">Chatbot</a>
+            </li>
+        </ul>
+    </nav>
+    <!-- Video Background -->
+    <video id="background-video" autoplay loop muted playsinline>
+        <source src="/static/predict_video.mp4" type="video/mp4">
+        <source src="/static/predict_video.webm" type="video/webm">
+        Your browser does not support the video tag.
+    </video>
+    <div id="video-overlay"></div>
+
+    <div class="w-full max-w-3xl bg-black/[0.7] text-white shadow-lg rounded-lg p-6 mx-auto mt-32 z-20 animate-fadeInUp"
+        data-scroll>
+        <h2 class="text-2xl font-bold text-center mb-4 animate-fadeInUp" style="animation-delay: 0.1s">
+            AI Medical Disease Predictor
+        </h2>
+        <div class="bg-gray-900/[0.6] text-white p-4 rounded-lg border border-gray-700">
+            <label class="block mb-2">Enter your symptoms (comma-separated):</label>
+            <input type="text" id="symptom-input"
+                class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2 mb-3">
+            <button onclick="submitSymptoms()"
+                class="gradient-btn text-white px-6 py-3 rounded-lg w-full font-semibold hover:scale-105 transition-all duration-300">
+                Submit
+            </button>
+
+            <div id="selected-symptoms" class="symptom-list mt-4 animate-fadeInUp" style="animation-delay: 0.2s"></div>
+            <div id="suggestions" class="suggest-list mt-4 animate-fadeInUp" style="animation-delay: 0.3s"></div>
+            <div id="disease-results" class="disease-result mt-4 animate-fadeInUp" style="animation-delay: 0.4s"></div>
+        </div>
+    </div>
+    <div id="info-modal" class="info-modal" style="display:none;">
+        <button class="close-btn" onclick="closeModal()">X</button>
+        <div id="info-content"></div>
+    </div>
+
+    <script>
+        let symptoms = [];
+        let selectedSymptoms = [];
+
+        function submitSymptoms() {
+            const input = document.getElementById('symptom-input').value.trim();
+            if (!input) return;
+            symptoms = input.split(',').map(s => s.trim()).filter(s => s);
+            selectedSymptoms = [];
+            document.getElementById('selected-symptoms').innerHTML = '';
+            getSuggestions();
+        }
+
+        function getSuggestions() {
+            fetch('/suggest_symptoms', {
+                method: 'POST',
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ user_symptoms: symptoms })
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+                    return res.json();
+                })
+                .then(data => {
+                    showSelectedSymptoms();
+                    if (data.suggestions && data.suggestions.length) {
+                        let html = '<b>Do you have any of the following symptoms?</b><br>';
+                        data.suggestions.forEach(sym => {
+                            html += `
+                                <button onclick="addSymptom('${sym}')"
+                                    class="gradient-btn text-white px-6 py-3 rounded-lg font-semibold hover:scale-105 transition-all duration-300 mr-2 mb-2">
+                                    ${sym}
+                                </button>
+                            `;
+                        });
+                        html += `<br><button onclick="predictNow()"
+                            class="gradient-btn text-white px-6 py-3 rounded-lg w-full font-semibold hover:scale-105 transition-all duration-300">
+                            No more
+                        </button>`;
+                        document.getElementById('suggestions').innerHTML = html;
+                    } else {
+                        predictNow();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching suggestions:', error);
+                    document.getElementById('suggestions').innerHTML = "⚠️ Failed to load suggestions";
+                });
+        }
+
+        function addSymptom(sym) {
+            if (!selectedSymptoms.includes(sym)) selectedSymptoms.push(sym);
+            showSelectedSymptoms();
+        }
+
+        function showSelectedSymptoms() {
+            let html = '';
+            if (symptoms.length) html += `<b>Initial symptoms:</b> ${symptoms.join(', ')}<br>`;
+            if (selectedSymptoms.length) html += `<b>Added symptoms:</b> ${selectedSymptoms.join(', ')}<br>`;
+            document.getElementById('selected-symptoms').innerHTML = html;
+        }
+
+        function predictNow() {
+            document.getElementById('suggestions').innerHTML = '';
+            const allSymptoms = symptoms.concat(selectedSymptoms);
+            fetch('/predict_disease', {
+                method: 'POST',
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ final_symptoms: allSymptoms })
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+                    return res.json();
+                })
+                .then(data => {
+                    if (data.response) {
+                        renderDiseaseTable(data.response);
+                    } else {
+                        document.getElementById('disease-results').innerHTML = "⚠️ No predictions found.";
+                    }
+                })
+                .catch(error => {
+                    console.error('Prediction error:', error);
+                    document.getElementById('disease-results').innerHTML = "⚠️ Failed to load predictions";
+                });
+        }
+
+        function renderDiseaseTable(markdownTable) {
+            const lines = markdownTable.split('\n').filter(line => line.trim().startsWith('|'));
+            if (lines.length < 3) {
+                document.getElementById('disease-results').innerHTML = "⚠️ No predictions found.";
+                return;
+            }
+            let html = `<h3>Top 5 Predicted Diseases</h3>
+        <table class="disease-table">
+        <tr><th>Number</th><th>Disease</th><th>Info</th></tr>`;
+            for (let i = 2; i < lines.length; i++) {
+                const parts = lines[i].split('|').map(x => x.trim()).filter(Boolean);
+                if (parts.length >= 2) {
+                    const num = parts[0];
+                    const disease = parts[1];
+                    html += `<tr>
+                <td>${num}</td>
+                <td>${disease}</td>
+                <td>
+                    <button onclick="showInfo('${disease.replace(/'/g, "\\'")}')"
+                        class="gradient-btn text-white px-3 py-2 rounded-lg font-semibold hover:scale-105 transition-all duration-300">
+                        Show Info
+                    </button>
+                </td>
+            </tr>`;
+                }
+            }
+            html += `</table>
+    <p style="font-size: 0.85em; color: #fbbf24; margin-top: 1em; line-height: 1.4;">
+        ⚠️ <em>This prediction is generated by an AI medical assistant and is for informational purposes only. 
+        It is <strong>not a substitute for professional medical advice, diagnosis, or treatment</strong>. 
+        Always consult a qualified healthcare provider regarding any medical concerns.</em>
+    </p>`;
+            document.getElementById('disease-results').innerHTML = html;
+        }
+
+        function showInfo(disease) {
+            fetch('/get_disease_info', {
+                method: 'POST',
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ disease: disease })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('info-content').innerHTML = marked.parse(data.response || "No info found.");
+                    document.getElementById('info-modal').style.display = '';
+                });
+        }
+
+        function closeModal() {
+            document.getElementById('info-modal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effortless Support</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Add marked.js for Markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#8B5CF6', // Violet-500
+                        secondary: '#1F2937', // Gray-800
+                        'dark-bg': '#111827', // Gray-900
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css?family=Abel" rel="stylesheet">
+
+
+    <style>
+        body {
+            font-family: 'Abel', sans-serif;
+        }
+
+        html {
+            font-size: 1.35rem;
+            font-weight: 600;
+        }
+
+        .message-bubble {
+            
+            animation: fadeInUp 0.3s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .typing-indicator span {
+            animation: pulse 1.5s infinite;
+        }
+
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+
+        #initialScreen {
+            transition: opacity 0.5s ease-out;
+        }
+
+        /* Markdown styling for bot messages */
+        .bot-message h1,
+        .bot-message h2,
+        .bot-message h3 {
+            color: #2dd4bf;
+            margin-top: 1em;
+            margin-bottom: 0.5em;
+            font-weight: bold;
+        }
+
+        .bot-message strong,
+        .bot-message b {
+            color: #fbbf24;
+        }
+
+        .bot-message ul,
+        .bot-message ol {
+            margin-left: 1.5em;
+            margin-bottom: 1em;
+        }
+
+        .bot-message blockquote {
+            border-left: 4px solid #f87171;
+            background: #1e293b;
+            color: #f87171;
+            padding: 0.5em 1em;
+            margin: 1em 0;
+            font-style: italic;
+        }
+
+        .bot-message {
+            line-height: 1.7;
+        }
+
+        .bot-message hr {
+            border: none;
+            border-top: 1px solid #334155;
+            margin: 1em 0;
+        }
+
+        .bot-message code {
+            background: #334155;
+            color: #fbbf24;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body class="bg-dark-bg text-white h-screen overflow-hidden ">
+    <!-- Navbar -->
+    <nav class="flex justify-between items-center px-10 py-4 bg-gray-900/[0.7] text-white">
+        <div class="text-2xl font-bold flex items-center">
+            <span><img src="/static/artemis.png" class="w-10 h-10 mx-auto"></span>
+            <span class="ml-2">Artemis</span>
+        </div>
+        <ul class="flex space-x-6 text-white">
+            <li class="hover:text-blue-400 cursor-pointer transition-colors duration-150"><a href="/">Home</a></li>
+            <li class="hover:text-blue-400 cursor-pointer transition-colors duration-150"><a
+                    href="/predict">Prediction</a></li>
+            <li class="hover:text-blue-400 cursor-pointer transition-colors duration-150"><a href="/predict_xray">Chest
+                    X-Ray</a></li>
+            <li class="hover:text-blue-400 cursor-pointer transition-colors duration-150"><a href="/predict_skin">Skin
+                    disease</a></li>
+            <li class="hover:text-blue-400 cursor-pointer transition-colors duration-150"><a href="/covid19">Lung
+                    disease</a></li>
+            <li class="hover:text-blue-400 cursor-pointer transition-colors duration-150"><a href="/chat">Chatbot</a>
+            </li>
+        </ul>
+    </nav>
+
+    <video autoplay loop muted playsinline class="absolute top-0 left-0 w-full h-full object-cover -z-10">
+        <source src="static/chatbot_vid.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+
+    <div class="relative h-screen flex flex-col bg-black/30 backdrop-blur-sm">
+
+        <!-- Chat Area -->
+        <main class="flex-1 flex flex-col overflow-hidden">
+            <div id="chatContainer" class="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-hide">
+
+                <!-- Initial Screen -->
+                <div id="initialScreen" class="flex flex-col items-center justify-center h-full text-center">
+                    <svg class="w-16 h-16 text-primary mb-6" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M12.012 2.25c.502 0 .984.032 1.451.094.819.105 1.603.312 2.308.609.702.296 1.34.698 1.886 1.178.546.48 1.002.992 1.34 1.516.338.522.565 1.056.671 1.59a8.948 8.948 0 01.127 1.763c.01.21.015.421.015.631s-.005.421-.015.631a8.948 8.948 0 01-.127 1.763c-.106.534-.333 1.068-.67 1.59-.338.524-.794 1.036-1.34 1.516-.547.48-1.184.882-1.886 1.178-.705.297-1.489.504-2.308.61a12.92 12.92 0 01-1.451.094c-.502 0-.984-.032-1.451-.094-.819-.106-1.603-.313-2.308-.61-.702-.296-1.34-.698-1.886-1.178-.546-.48-1.002-.992-1.34-1.516-.338-.522-.565-1.056-.67-1.59a8.948 8.948 0 01-.127-1.763c-.01-.21-.015-.421-.015-.631s.005-.421.015-.631c.016-.56.11-1.114.286-1.65.176-.535.441-1.047.781-1.51.34-.463.75-.888 1.21-1.258.46-.37.962-.688 1.488-.94.526-.252 1.07-.442 1.622-.56.32-.07.644-.122.97-.158.326-.036.653-.055.98-.055zM12 4.251c-4.28 0-7.75 3.47-7.75 7.75s3.47 7.75 7.75 7.75 7.75-3.47 7.75-7.75-3.47-7.75-7.75-7.75z" />
+                    </svg>
+                    <h1 class="text-4xl font-bold mb-2">Effortless Support, Anytime</h1>
+                    <p class="text-lg text-gray-300">Providing Seamless Assistance to Employees, Every Step of the Way
+                    </p>
+                </div>
+
+                <!-- Messages Container -->
+                <div id="messagesContainer" class="hidden space-y-4">
+                    <!-- Messages will be injected here -->
+                </div>
+            </div>
+
+            <button id="clearChat"
+                class="absolute top-6 right-6 text-gray-400 hover:text-white transition-colors z-20 hidden">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                    </path>
+                </svg>
+            </button>
+        </main>
+
+        <!-- Input Area -->
+        <div class="p-6 mb-16">
+            <div class="max-w-4xl mx-auto">
+                <div class="relative">
+                    <input id="messageInput" placeholder="Type message"
+                        class="w-full bg-secondary border border-gray-600 rounded-xl py-3 pl-4 pr-12 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300" />
+                    <button id="sendButton"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 bg-primary hover:bg-violet-600 text-white rounded-lg p-2 transition-colors duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class ChatbotUI {
+            constructor() {
+                this.chatContainer = document.getElementById('chatContainer');
+                this.initialScreen = document.getElementById('initialScreen');
+                this.messagesContainer = document.getElementById('messagesContainer');
+                this.messageInput = document.getElementById('messageInput');
+                this.sendButton = document.getElementById('sendButton');
+                this.clearChatButton = document.getElementById('clearChat');
+
+                this.isTyping = false;
+                this.chatStarted = false;
+
+                this.initializeEventListeners();
+            }
+
+            initializeEventListeners() {
+                this.sendButton.addEventListener('click', () => this.sendMessage());
+                this.messageInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        this.sendMessage();
+                    }
+                });
+
+                this.messageInput.addEventListener('input', () => {
+                    this.startChat();
+                    this.updateSendButtonState();
+                });
+
+                this.clearChatButton.addEventListener('click', () => this.resetChat());
+            }
+
+            startChat() {
+                if (this.chatStarted) return;
+
+                this.chatStarted = true;
+                this.initialScreen.style.opacity = '0';
+                setTimeout(() => {
+                    this.initialScreen.classList.add('hidden');
+                    this.messagesContainer.classList.remove('hidden');
+                    this.clearChatButton.classList.remove('hidden');
+                    this.addMessage("Hello! I'm Artemis, your medical AI assistant. How can I help you today with your medical questions?", 'assistant');
+                }, 300);
+            }
+
+            updateSendButtonState() {
+                const hasText = this.messageInput.value.trim().length > 0;
+                this.sendButton.disabled = !hasText || this.isTyping;
+            }
+
+            async sendMessage() {
+                const message = this.messageInput.value.trim();
+                if (!message || this.isTyping) return;
+
+                this.addMessage(message, 'user');
+                this.messageInput.value = '';
+                this.updateSendButtonState();
+                this.showTypingIndicator();
+
+                // Send message to backend
+                try {
+                    const response = await fetch("/get_response", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ user_input: message }),
+                    });
+
+                    const data = await response.json();
+                    this.hideTypingIndicator();
+
+                    if (data.response) {
+                        // Display bot response as rendered Markdown
+                        this.addMessage(data.response, 'assistant', true);
+                    } else {
+                        console.error("Invalid response from server:", data);
+                        this.addMessage("Sorry, I couldn't process your request. Please try again.", 'assistant');
+                    }
+                } catch (error) {
+                    this.hideTypingIndicator();
+                    console.error("Error:", error);
+                    this.addMessage("Sorry, an error occurred. Please try again.", 'assistant');
+                }
+            }
+
+            addMessage(content, sender, isMarkdown = false) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message-bubble flex ' + (sender === 'user' ? 'justify-end' : 'justify-start');
+
+                const isUser = sender === 'user';
+                const bgColor = isUser ? 'bg-primary' : 'bg-secondary';
+                const roundedClass = isUser ? 'rounded-2xl rounded-tr-md' : 'rounded-2xl rounded-tl-md';
+
+                // Process content for markdown if needed
+                const processedContent = isMarkdown ? marked.parse(content) : this.escapeHtml(content);
+                const contentClass = isMarkdown ? 'bot-message' : '';
+
+                messageDiv.innerHTML = `
+                    <div class="flex items-start space-x-3 max-w-3xl ${isUser ? 'flex-row-reverse space-x-reverse' : ''}">
+                        ${!isUser ? `
+                            <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.012 2.25c.502 0 .984.032 1.451.094.819.105 1.603.312 2.308.609.702.296 1.34.698 1.886 1.178.546.48 1.002.992 1.34 1.516.338.522.565 1.056.671 1.59a8.948 8.948 0 01.127 1.763c.01.21.015.421.015.631s-.005.421-.015.631a8.948 8.948 0 01-.127 1.763c-.106.534-.333 1.068-.67 1.59-.338.524-.794 1.036-1.34 1.516-.547.48-1.184.882-1.886 1.178-.705.297-1.489.504-2.308.61a12.92 12.92 0 01-1.451.094c-.502 0-.984-.032-1.451-.094-.819-.106-1.603-.313-2.308-.61-.702-.296-1.34-.698-1.886-1.178-.546-.48-1.002-.992-1.34-1.516-.338-.522-.565-1.056-.67-1.59a8.948 8.948 0 01-.127-1.763c-.01-.21-.015-.421-.015-.631s.005-.421.015-.631c.016-.56.11-1.114.286-1.65.176-.535.441-1.047.781-1.51.34-.463.75-.888 1.21-1.258.46-.37.962-.688 1.488-.94.526-.252 1.07-.442 1.622-.56.32-.07.644-.122.97-.158.326-.036.653-.055.98-.055zM12 4.251c-4.28 0-7.75 3.47-7.75 7.75s3.47 7.75 7.75 7.75 7.75-3.47 7.75-7.75-3.47-7.75-7.75-7.75z"/></svg>
+                            </div>
+                        ` : ''}
+                        <div class="${bgColor} ${roundedClass} px-4 py-3 shadow-lg ${contentClass}">
+                            <div class="text-gray-100">${processedContent}</div>
+                        </div>
+                        ${isUser ? `
+                            <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+
+                this.messagesContainer.appendChild(messageDiv);
+                this.scrollToBottom();
+            }
+
+            showTypingIndicator() {
+                this.isTyping = true;
+                this.updateSendButtonState();
+
+                const typingDiv = document.createElement('div');
+                typingDiv.id = 'typingIndicator';
+                typingDiv.className = 'message-bubble flex justify-start';
+                typingDiv.innerHTML = `
+                    <div class="flex items-start space-x-3">
+                        <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.012 2.25c.502 0 .984.032 1.451.094.819.105 1.603.312 2.308.609.702.296 1.34.698 1.886 1.178.546.48 1.002.992 1.34 1.516.338.522.565 1.056.671 1.59a8.948 8.948 0 01.127 1.763c.01.21.015.421.015.631s-.005.421-.015.631a8.948 8.948 0 01-.127 1.763c-.106.534-.333 1.068-.67 1.59-.338.524-.794 1.036-1.34 1.516-.547.48-1.184.882-1.886 1.178-.705.297-1.489.504-2.308.61a12.92 12.92 0 01-1.451.094c-.502 0-.984-.032-1.451-.094-.819-.106-1.603-.313-2.308-.61-.702-.296-1.34-.698-1.886-1.178-.546-.48-1.002-.992-1.34-1.516-.338-.522-.565-1.056-.67-1.59a8.948 8.948 0 01-.127-1.763c-.01-.21-.015-.421-.015-.631s.005-.421.015-.631c.016-.56.11-1.114.286-1.65.176-.535.441-1.047.781-1.51.34-.463.75-.888 1.21-1.258.46-.37.962-.688 1.488-.94.526-.252 1.07-.442 1.622-.56.32-.07.644-.122.97-.158.326-.036.653-.055.98-.055zM12 4.251c-4.28 0-7.75 3.47-7.75 7.75s3.47 7.75 7.75 7.75 7.75-3.47 7.75-7.75-3.47-7.75-7.75-7.75z"/></svg>
+                        </div>
+                        <div class="bg-secondary rounded-2xl rounded-tl-md px-4 py-3 shadow-lg typing-indicator">
+                            <div class="flex space-x-1">
+                                <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
+                                <span class="w-2 h-2 bg-gray-400 rounded-full" style="animation-delay: 0.2s;"></span>
+                                <span class="w-2 h-2 bg-gray-400 rounded-full" style="animation-delay: 0.4s;"></span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                this.messagesContainer.appendChild(typingDiv);
+                this.scrollToBottom();
+            }
+
+            hideTypingIndicator() {
+                this.isTyping = false;
+                this.updateSendButtonState();
+
+                const typingIndicator = document.getElementById('typingIndicator');
+                if (typingIndicator) {
+                    typingIndicator.remove();
+                }
+            }
+
+            scrollToBottom() {
+                setTimeout(() => {
+                    this.chatContainer.scrollTop = this.chatContainer.scrollHeight;
+                }, 100);
+            }
+
+            resetChat() {
+                if (confirm('Are you sure you want to clear the chat history?')) {
+                    this.messagesContainer.innerHTML = '';
+                    this.messagesContainer.classList.add('hidden');
+                    this.clearChatButton.classList.add('hidden');
+
+                    this.initialScreen.classList.remove('hidden');
+                    this.initialScreen.style.opacity = '1';
+
+                    this.chatStarted = false;
+                    this.hideTypingIndicator();
+                }
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            new ChatbotUI();
+        });
+    </script>
+</body>
+
+</html>

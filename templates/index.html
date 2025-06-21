@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Artemis</title>
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Abel&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        fontFamily: {
+          sans: ['Abel', 'sans-serif'],
+        },
+        extend: {
+          animation: {
+            fadeInUp: 'fadeInUp 0.8s ease-out forwards',
+            textGradient: 'textGradient 5s ease infinite',
+            typewriter: 'typewriter 2s steps(11) forwards',
+          },
+          keyframes: {
+            fadeInUp: {
+              '0%': { opacity: 0, transform: 'translateY(20px)' },
+              '100%': { opacity: 1, transform: 'translateY(0)' },
+            },
+            textGradient: {
+              '0%, 100%': { 'background-size': '200% 200%', 'background-position': 'left center' },
+              '50%': { 'background-size': '200% 200%', 'background-position': 'right center' },
+            },
+            typewriter: {
+              to: { width: '100%' },
+            },
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .animate-typewriter {
+      display: inline-block;
+      overflow: hidden;
+      border-right: 2px solid;
+      white-space: nowrap;
+    }
+    
+  </style>
+</head>
+<body class="bg-white font-sans">
+    <!-- Navbar -->
+    <nav class="flex justify-between items-center px-10 py-4 bg-gray-900 text-white">
+        <div class="text-2xl font-bold flex items-center">
+            <span><img src="/static/artemis.png" class="w-10 h-10 mx-auto"></span>
+            <span class="ml-2">Artemis</span>
+        </div>
+        <ul class="flex space-x-6 text-white">
+            <li class="hover:text-blue-400 cursor-pointer transition-colors duration-150"><a href="/">Home</a></li>
+            <li class="hover:text-blue-400 cursor-pointer transition-colors duration-150"><a href="/predict">Prediction</a></li>
+            <li class="hover:text-blue-400 cursor-pointer transition-colors duration-150"><a href="/predict_xray">Chest X-Ray</a></li>
+            <li class="hover:text-blue-400 cursor-pointer transition-colors duration-150"><a href="/predict_skin">Skin disease</a></li>
+            <li class="hover:text-blue-400 cursor-pointer transition-colors duration-150"><a href="/covid19">Lung disease</a></li>
+            <li class="hover:text-blue-400 cursor-pointer transition-colors duration-150"><a href="/chat">Chatbot</a></li>
+        </ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative w-full h-screen flex items-center justify-center text-center">
+        <video class="absolute w-full h-full object-cover opacity-60" autoplay muted loop>
+  <source src="/static/home_video.mp4" type="video/mp4">
+  <!-- Optional: Fallback for browsers that don't support video -->
+  <img src="/static/hbg.jpg" alt="Clinic Image">
+</video>
+
+        
+        <div class="relative z-10 mt-[-170px] animate-fadeInUp">
+            <h1 class="text-4xl font-semibold">Welcome to</h1>
+            <h2 class="text-5xl font-bold text-gray-800">Your AI Digital HealthCare Expert</h2>
+            <p class="text-gray-700 mt-4 max-w-lg mx-auto">
+                Experience the future of healthcare with our AI-powered solutions. From predictive diagnosis to personalized treatment plans, we leverage advanced technology to provide accurate and efficient medical assistance. Your health, our priority.
+            </p>
+        </div>
+    </section>
+
+    <!-- Info Cards Section -->
+    <section class="flex justify-center mt-[-290px] relative z-10 animate-fadeInUp">
+        <!-- Predictive Diagnosis -->
+        <div class="bg-blue-800 text-white p-8 rounded-l-lg w-1/4 text-center shadow-lg hover:transform hover:scale-105 hover:shadow-xl transition-all duration-300">
+            <div>
+                <img src="/static/presc.png" alt="Predictive Diagnosis" class="w-20 h-20 mx-auto">
+            </div>
+            <h3 class="font-bold text-lg mt-2">Predictive Diagnosis</h3>
+            <p class="text-sm mt-2">Our AI-powered system analyzes symptoms and medical history to provide early detection of potential health risks, ensuring timely intervention.</p>
+        </div>
+
+        <!-- Symptoms and Remedies -->
+        <div class="bg-blue-900 text-white p-8 w-1/4 text-center shadow-lg hover:transform hover:scale-105 hover:shadow-xl transition-all duration-300">
+            <div>
+                <img src="/static/medicine.png" alt="Symptoms and Remedies" class="w-20 h-20 mx-auto">
+            </div>
+            <h3 class="font-bold text-lg mt-2">Symptoms and Remedies</h3>
+            <p class="text-sm mt-2">Get instant insights into common symptoms along with AI-recommended natural and medical remedies tailored for quick relief.</p>
+        </div>
+
+        <!-- Medical Chatbot -->
+        <div class="bg-blue-800 text-white p-8 rounded-r-lg w-1/4 text-center shadow-lg hover:transform hover:scale-105 hover:shadow-xl transition-all duration-300">
+            <div>
+                <img src="/static/chatbot.png" alt="Medical Chatbot" class="w-20 h-20 mx-auto">
+            </div>
+            <h3 class="font-bold text-lg mt-2">Medical Chatbot</h3>
+            <p class="text-sm mt-2">Chat with our AI-driven medical assistant to get real-time health advice, symptom analysis, and personalized recommendations.</p>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="max-w-7xl mx-auto px-16 py-16 flex items-center animate-fadeInUp">
+        <div class="w-3/5 pr-16">
+            <h1 class="text-5xl font-semibold leading-tight text-gray-900">A Great Place <br>
+                <span class="text-blue-600 font-bold">for Medical Care</span>
+            </h1>
+            <p class="text-gray-600 mt-6 text-lg leading-relaxed">
+                Our AI-powered healthcare solutions provide a revolutionary approach to medical care. By integrating the latest advancements in artificial intelligence,
+                we offer precise diagnostics, personalized treatment plans, and virtual health consultations—all designed to enhance patient well-being.
+                <br><br>
+                Whether you're seeking preventive care, expert consultations, or advanced treatment options, our team is dedicated to delivering exceptional medical services.
+                Experience healthcare that is efficient, accessible, and tailored to your needs.
+            </p>
+            <button class="w-full max-w-md px-6 py-2 text-white font-semibold rounded-md hover:opacity-90 transition bg-gradient-to-r from-teal-500 to-blue-500">
+                Learn More →
+            </button>
+        </div>
+        <div class="w-1/2 flex justify-center">
+            <img src="/static/doctor.jpg" alt="Doctors" class="w-full h-auto rounded-lg shadow-lg transition-transform duration-300 hover:scale-105">
+        </div>
+    </section>
+
+    <!-- AI-Powered Healthcare Solutions -->
+    <section class="bg-gray-100 py-16 animate-fadeInUp ">
+        <div class="max-w-7xl mx-auto px-8">
+            <h2 class="text-4xl font-bold text-center text-gray-900 mb-12">Our AI-Powered Healthcare Solutions</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                <!-- Predictive Diagnosis -->
+                <div class="flex items-start space-x-4 p-6 bg-white rounded-lg shadow-md hover:shadow-xl hover:transform hover:scale-105 transition-all duration-300">
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-900">AI Predictive Diagnosis</h3>
+                        <p class="text-gray-600 text-base">Our AI system analyzes your symptoms, medical history, and various health data points to predict potential health risks early, offering a proactive approach to healthcare.</p>
+                    </div>
+                </div>
+                <!-- Predict COVID-19 X-Ray -->
+                <div class="flex items-start space-x-4 p-6 bg-white rounded-lg shadow-md hover:shadow-xl hover:transform hover:scale-105 transition-all duration-300">
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-900">COVID-19 X-Ray Prediction</h3>
+                        <p class="text-gray-600 text-base">With our AI tool, you can predict potential signs of COVID-19 through chest X-rays. This tool helps in early diagnosis, improving timely treatment options for patients.</p>
+                    </div>
+                </div>
+                <!-- Predict Chest X-Ray -->
+                <div class="flex items-start space-x-4 p-6 bg-white rounded-lg shadow-md hover:shadow-xl hover:transform hover:scale-105 transition-all duration-300">
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-900">Chest X-Ray Prediction</h3>
+                        <p class="text-gray-600 text-base">Our AI algorithm analyzes chest X-ray images to identify and predict various lung and chest-related diseases, enabling better diagnosis and quicker response times.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mt-12">
+                <!-- Symptom-Based Prediction -->
+                <div class="flex items-start space-x-4 p-6 bg-white rounded-lg shadow-md hover:shadow-xl hover:transform hover:scale-105 transition-all duration-300">
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-900">Symptom-Based Prediction</h3>
+                        <p class="text-gray-600 text-base">Based on the symptoms you provide, our AI system can predict a range of potential health conditions, helping you understand possible diagnoses and aiding in decision-making for treatment.</p>
+                    </div>
+                </div>
+                <!-- Medical Chatbot -->
+                <div class="flex items-start space-x-4 p-6 bg-white rounded-lg shadow-md hover:shadow-xl hover:transform hover:scale-105 transition-all duration-300">
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-900">Medical Chatbot</h3>
+                        <p class="text-gray-600 text-base">Interact with our AI-driven chatbot to receive personalized healthcare advice, ask questions about symptoms, and get guidance on your healthcare needs 24/7.</p>
+                    </div>
+                </div>
+                <!-- Additional AI Feature -->
+                <div class="flex items-start space-x-4 p-6 bg-white rounded-lg shadow-md hover:shadow-xl hover:transform hover:scale-105 transition-all duration-300">
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-900">AI-Driven Virtual Consultation</h3>
+                        <p class="text-gray-600 text-base">Our virtual consultation platform allows you to connect with medical professionals via AI-powered systems to receive remote consultations and advice, improving accessibility to healthcare.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Healthcare Section -->
+    <section class="max-w-full flex items-center animate-fadeInUp">
+        <div class="w-1/2">
+            <img src="/static/AI-In-Healthcare.jpg.webp" alt="Surgery" class="w-full h-[500px] object-cover transition-transform duration-300 hover:scale-105">
+        </div>
+        <div class="w-1/2 pl-16 pr-20">
+            <h1 class="text-5xl font-semibold leading-tight text-gray-900">
+                We Are Your <br>
+                <span class="font-bold text-gray-800">Partners For Life</span>
+            </h1>
+            <p class="text-gray-600 mt-6 text-lg leading-relaxed">
+                Our AI-driven healthcare solutions ensure precision, efficiency, and reliability in medical diagnostics and treatment.
+                We leverage advanced machine learning algorithms to enhance patient care, optimize treatment plans, and provide
+                real-time health monitoring for better outcomes.
+            </p>
+            <div class="mt-8">
+                <div class="mb-4">
+                    <div class="flex justify-between text-gray-700 font-semibold">
+                        <span>Customer Satisfaction with our Services</span> <span>90%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                        <div class="bg-teal-500 h-2.5 rounded-full transition-[width] duration-1000" style="width: 90%;"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between text-gray-700 font-semibold">
+                        <span>AI-Based Diagnosis Accuracy</span><span>95%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                        <div class="bg-teal-500 h-2.5 rounded-full transition-[width] duration-1000" style="width: 95%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quality Assurance Section -->
+    <section class="max-w-full flex items-center animate-fadeInUp">
+        <div class="w-1/2 pl-16 pr-20">
+            <h2 class="text-5xl font-bold text-gray-900 mb-6">Committed to Excellence</h2>
+            <p class="text-gray-600 text-lg mb-6 leading-relaxed">
+                Our team of medical professionals and AI specialists work together to provide high-quality healthcare solutions.
+                From preventive care to advanced treatment strategies, we are dedicated to ensuring patient safety, comfort,
+                and the best possible health outcomes.
+            </p>
+            <a href="#" class="w-full max-w-md px-6 py-2 text-white font-semibold rounded-md hover:opacity-90 transition bg-gradient-to-r from-teal-500 to-blue-500">
+                Learn more →
+            </a>
+        </div>
+        <div class="w-1/2">
+            <img src="/static/Smiling.jpg" alt="Smiling Doctor" class="w-full h-[500px] object-cover transition-transform duration-300 hover:scale-105">
+        </div>
+    </section>
+
+    <!-- Footer Section -->
+    <footer class="bg-gray-900 text-white py-12 animate-fadeInUp">
+        <div class="max-w-7xl mx-auto px-8 grid grid-cols-1 md:grid-cols-3 gap-12">
+            <div>
+                <h2 class="text-2xl font-bold flex items-center">
+                    <img src="/static/artemis.png" alt="Logo" class="w-8 h-8 mr-2">
+                    Artemis Health
+                </h2>
+                <p class="text-gray-400 mt-4 text-sm leading-relaxed">
+                    Providing AI-powered healthcare solutions for accurate diagnosis, personalized treatment, and 24/7 virtual assistance.
+                    Our mission is to bridge the gap between technology and medical care for a healthier future.
+                </p>
+                <div class="mt-4 space-y-2 text-gray-400 text-sm">
+                    <p>📍 Sector 5, Kolkata</p>
+                    <p>📞 +91 62898 02823</p>
+                    <p>✉️ contact@artemishealth.com</p>
+                </div>
+            </div>
+            <div>
+                <h3 class="text-xl font-semibold">Quick Links</h3>
+                <ul class="mt-4 space-y-2 text-gray-400 text-sm">
+                    <li><a href="#" class="hover:text-teal-400 transition-colors duration-150">About Us</a></li>
+                    <li><a href="#" class="hover:text-teal-400 transition-colors duration-150">Our Services</a></li>
+                    <li><a href="/predict" class="hover:text-teal-400 transition-colors duration-150">AI Diagnostics</a></li>
+                    <li><a href="/chat" class="hover:text-teal-400 transition-colors duration-150">Virtual Consultation</a></li>
+                    <li><a href="#" class="hover:text-teal-400 transition-colors duration-150">Health Blog</a></li>
+                    <li><a href="#" class="hover:text-teal-400 transition-colors duration-150">Contact Us</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-xl font-semibold">Get In Touch</h3>
+                <p class="text-gray-400 text-sm mt-2">Have a question or need assistance? Send us a message!</p>
+                <form class="mt-4 space-y-4">
+                    <input type="text" placeholder="Your Name" class="w-full px-4 py-2 bg-gray-800 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-200">
+                    <input type="email" placeholder="Your Email" class="w-full px-4 py-2 bg-gray-800 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-200">
+                    <textarea placeholder="Your Message" class="w-full px-4 py-2 bg-gray-800 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-200"></textarea>
+                    <button class="w-full max-w-md px-6 py-2 text-white font-semibold rounded-md hover:opacity-90 transition bg-gradient-to-r from-teal-500 to-blue-500">
+                        Send Message
+                    </button>
+                </form>
+            </div>
+        </div>
+    </footer>
+</body>
+<style>
+  html {
+    font-size: 1.35rem;
+    font-weight: 600;
+  }
+</style>
+</html>
